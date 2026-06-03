@@ -4,10 +4,10 @@
 # https://aka.ms/yaml
 
 trigger:
-- pipeline
+- main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: newjavaagent
 
 steps:
 - script: echo Hello, world!
