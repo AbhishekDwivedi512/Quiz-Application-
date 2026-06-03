@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: newjavaagent
+  name: newjavaagent
 
 steps:
 - script: echo Hello, world!
