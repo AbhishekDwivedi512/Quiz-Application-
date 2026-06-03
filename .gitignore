@@ -1,0 +1,41 @@
+# =========================
+# BUILD FILES
+# =========================
+build/
+dist/
+target/
+
+# Compiled Java files
+*.class
+*.jar
+*.war
+
+# =========================
+# NETBEANS
+# =========================
+nbproject/private/
+nbproject/build-impl.xml
+nbproject/genfiles.properties
+
+# =========================
+# IDE FILES
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# LOGS
+# =========================
+*.log
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# ENV / SECRETS
+# =========================
+.env
