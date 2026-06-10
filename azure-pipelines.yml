@@ -76,16 +76,23 @@ stages:
         jdkSourceOption: 'PreInstalled'
 
     # Prepare SonarCloud
+    # Prepare SonarCloud
     - task: SonarCloudPrepare@3
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
-        SonarCloud: 'SonarCloud-ServiceConnection'
-        organization: 'ad8551321'
-        scannerMode: 'CLI'
-        configMode: 'manual'
-        cliProjectKey: 'ad8551321_Quiz-application'
-        cliProjectName: 'Quiz-Application'
-        cliSources: '.'
+       SonarCloud: 'SonarCloud-ServiceConnection'
+       organization: 'ad8551321'
+
+       scannerMode: 'CLI'
+       configMode: 'manual'
+
+       cliProjectKey: 'ad8551321_Quiz-application'
+       cliProjectName: 'Quiz-Application'
+
+       cliSources: 'src'
+
+       extraProperties: |
+        sonar.java.binaries=build/classes
 
     # Run Ant Build Again
     - task: Ant@1
