@@ -47,7 +47,7 @@ stages:
       displayName: 'Build Project using Ant'
       inputs:
         buildFile: 'build.xml'
-        targets: 'clean compile jar'
+        targets: 'clean compile jar' 
 
 # =========================================================
 # STAGE 2 : SONARCLOUD ANALYSIS
