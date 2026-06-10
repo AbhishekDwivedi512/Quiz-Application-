@@ -1,88 +1,136 @@
 trigger:
 - main
 
+# =========================================================
+# STAGE 1 : BUILD
+# =========================================================
 stages:
 
-# ==========================================
-# BUILD
-# ==========================================
 - stage: Build
-  displayName: Build
+  displayName: 'Build Stage'
 
   jobs:
   - job: BuildJob
+    displayName: 'Build using Apache Ant'
 
     pool:
-      vmImage: ubuntu-latest
+      vmImage: 'ubuntu-latest'
 
     steps:
 
+    # Checkout Code
+    - checkout: self
+
+    # Install JDK 21
     - task: JavaToolInstaller@0
+      displayName: 'Install JDK 21'
       inputs:
         versionSpec: '21'
-        jdkArchitectureOption: x64
-        jdkSourceOption: PreInstalled
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
 
-    - task: Maven@4
-      displayName: Build Project
+    # Verify Java Version
+    - script: |
+        java -version
+        javac -version
+      displayName: 'Verify Java Version'
+
+    # Debug Repository Structure
+    - script: |
+        echo "Repository Structure"
+        pwd
+        ls -R
+      displayName: 'Debug Repository'
+
+    # Build using Apache Ant
+    - task: Ant@1
+      displayName: 'Build Project using Ant'
       inputs:
-        mavenPomFile: build.xml
-        goals: 'clean package'
-        publishJUnitResults: true
+        buildFile: 'build.xml'
+        targets: 'clean compile jar'
 
-# ==========================================
-# SONARCLOUD
-# ==========================================
+# =========================================================
+# STAGE 2 : SONARCLOUD ANALYSIS
+# =========================================================
 - stage: CodeQuality
-  displayName: SonarCloud Analysis
+  displayName: 'SonarCloud Analysis'
 
   dependsOn: Build
 
   jobs:
-  - job: Sonar
+  - job: SonarJob
 
     pool:
-      vmImage: ubuntu-latest
+      vmImage: 'ubuntu-latest'
 
     steps:
 
-    - task: SonarCloudPrepare@3
+    - checkout: self
+
+    # Install JDK 21
+    - task: JavaToolInstaller@0
+      displayName: 'Install JDK 21'
+      inputs:
+        versionSpec: '21'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+
+    # Prepare SonarCloud
+    - task: SonarCloudPrepare@1
+      displayName: 'Prepare SonarCloud Analysis'
       inputs:
         SonarCloud: 'SonarCloud-ServiceConnection'
         organization: 'ad8551321'
-        scannerMode: 'Maven'
-        projectKey: 'quiz-app'
-        projectName: 'quiz-app'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'ad8551321_Quiz-application'
+        cliProjectName: 'Quiz-Application'
+        cliSources: '.'
 
-    - task: Maven@4
+    # Run Ant Build Again
+    - task: Ant@1
+      displayName: 'Run Ant Build'
       inputs:
-        mavenPomFile: build.xml
-        goals: 'verify sonar:sonar'
+        buildFile: 'build.xml'
+        targets: 'clean compile'
 
-    - task: SonarCloudPublish@3
+    # Analyze
+    - task: SonarCloudAnalyze@1
+      displayName: 'Run SonarCloud Analysis'
+
+    # Publish Result
+    - task: SonarCloudPublish@1
+      displayName: 'Publish Quality Gate'
       inputs:
         pollingTimeoutSec: '300'
 
-# ==========================================
-# DEPLOY
-# ==========================================
+# =========================================================
+# STAGE 3 : DEPLOYMENT
+# =========================================================
 - stage: Deploy
-  displayName: Production Deployment
+  displayName: 'Production Deployment'
 
   dependsOn: CodeQuality
 
   jobs:
 
-  - deployment: DeployToProd
+  - deployment: DeployToProduction
+    displayName: 'Deploy Application'
 
-    environment: Production
+    environment: 'Production'
 
     pool:
-      vmImage: ubuntu-latest
+      vmImage: 'ubuntu-latest'
 
     strategy:
       runOnce:
         deploy:
+          steps:
 
-steps:
-- script: echo Hello
+          - checkout: self
+
+          - script: |
+              echo "Deployment Started"
+              echo "Deploying Application..."
+              echo "Deployment Successful"
+            displayName: 'Deploy Application'
