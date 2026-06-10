@@ -26,7 +26,7 @@ stages:
     - task: Maven@4
       displayName: Build Project
       inputs:
-        mavenPomFile: pom.xml
+        mavenPomFile: build.xml
         goals: 'clean package'
         publishJUnitResults: true
 
@@ -49,14 +49,14 @@ stages:
     - task: SonarCloudPrepare@3
       inputs:
         SonarCloud: 'SonarCloud-ServiceConnection'
-        organization: 'your-org'
+        organization: 'ad8551321'
         scannerMode: 'Maven'
         projectKey: 'quiz-app'
         projectName: 'quiz-app'
 
     - task: Maven@4
       inputs:
-        mavenPomFile: pom.xml
+        mavenPomFile: build.xml
         goals: 'verify sonar:sonar'
 
     - task: SonarCloudPublish@3
