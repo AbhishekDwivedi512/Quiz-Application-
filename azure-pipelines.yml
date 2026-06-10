@@ -76,7 +76,7 @@ stages:
         jdkSourceOption: 'PreInstalled'
 
     # Prepare SonarCloud
-    - task: SonarCloudPrepare@1
+    - task: SonarCloudPrepare@3
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
         SonarCloud: 'SonarCloud-ServiceConnection'
@@ -95,11 +95,11 @@ stages:
         targets: 'clean compile'
 
     # Analyze
-    - task: SonarCloudAnalyze@1
+    - task: SonarCloudAnalyze@3
       displayName: 'Run SonarCloud Analysis'
 
     # Publish Result
-    - task: SonarCloudPublish@1
+    - task: SonarCloudPublish@3
       displayName: 'Publish Quality Gate'
       inputs:
         pollingTimeoutSec: '300'
