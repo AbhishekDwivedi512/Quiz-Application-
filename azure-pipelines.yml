@@ -2,10 +2,13 @@ trigger:
 - main
 
 # =========================================================
-# STAGE 1 : BUILD
+# STAGES
 # =========================================================
 stages:
 
+# =========================================================
+# STAGE 1 : BUILD
+# =========================================================
 - stage: Build
   displayName: 'Build Stage'
 
@@ -20,6 +23,7 @@ stages:
 
     # Checkout Code
     - checkout: self
+      fetchDepth: 0
 
     # Install JDK 21
     - task: JavaToolInstaller@0
@@ -29,25 +33,32 @@ stages:
         jdkArchitectureOption: 'x64'
         jdkSourceOption: 'PreInstalled'
 
-    # Verify Java Version
+    # Verify Java
     - script: |
         java -version
         javac -version
       displayName: 'Verify Java Version'
 
-    # Debug Repository Structure
-    - script: |
-        echo "Repository Structure"
-        pwd
-        ls -R
-      displayName: 'Debug Repository'
-
-    # Build using Apache Ant
+    # Build using Ant
     - task: Ant@1
       displayName: 'Build Project using Ant'
       inputs:
         buildFile: 'build.xml'
-        targets: 'clean compile jar' 
+        targets: 'clean compile jar'
+
+    # Debug generated files
+    - script: |
+        echo "===== GENERATED FILES ====="
+        pwd
+        ls -R
+      displayName: 'Check Build Output'
+
+    # Publish Artifact
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact'
+      inputs:
+        targetPath: 'dist'
+        artifact: 'JavaApp'
 
 # =========================================================
 # STAGE 2 : SONARCLOUD ANALYSIS
@@ -66,6 +77,7 @@ stages:
     steps:
 
     - checkout: self
+      fetchDepth: 0
 
     # Install JDK 21
     - task: JavaToolInstaller@0
@@ -76,36 +88,35 @@ stages:
         jdkSourceOption: 'PreInstalled'
 
     # Prepare SonarCloud
-    # Prepare SonarCloud
     - task: SonarCloudPrepare@3
       displayName: 'Prepare SonarCloud Analysis'
       inputs:
-       SonarCloud: 'SonarCloud-ServiceConnection'
-       organization: 'ad8551321'
+        SonarCloud: 'SonarCloud-ServiceConnection'
+        organization: 'ad8551321'
 
-       scannerMode: 'CLI'
-       configMode: 'manual'
+        scannerMode: 'CLI'
+        configMode: 'manual'
 
-       cliProjectKey: 'ad8551321_Quiz-application'
-       cliProjectName: 'Quiz-Application'
+        cliProjectKey: 'ad8551321_Quiz-application'
+        cliProjectName: 'Quiz-Application'
 
-       cliSources: 'src'
+        cliSources: 'src'
 
-       extraProperties: |
-        sonar.java.binaries=build/classes
+        extraProperties: |
+          sonar.java.binaries=build/classes
 
-    # Run Ant Build Again
+    # Run Ant Build
     - task: Ant@1
       displayName: 'Run Ant Build'
       inputs:
         buildFile: 'build.xml'
         targets: 'clean compile'
 
-    # Analyze
+    # Run Sonar Analysis
     - task: SonarCloudAnalyze@3
       displayName: 'Run SonarCloud Analysis'
 
-    # Publish Result
+    # Publish Sonar Result
     - task: SonarCloudPublish@3
       displayName: 'Publish Quality Gate'
       inputs:
@@ -136,6 +147,20 @@ stages:
 
           - checkout: self
 
+          # Download Artifact
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Artifact'
+            inputs:
+              artifact: 'JavaApp'
+              path: '$(Pipeline.Workspace)/artifacts'
+
+          # Verify Artifact
+          - script: |
+              echo "===== DOWNLOADED ARTIFACT ====="
+              ls -R $(Pipeline.Workspace)/artifacts
+            displayName: 'Verify Artifact'
+
+          # Deployment
           - script: |
               echo "Deployment Started"
               echo "Deploying Application..."
