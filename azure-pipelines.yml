@@ -84,9 +84,5 @@ stages:
       runOnce:
         deploy:
 
-          steps:
-
-          - script: |
-              echo "Deployment Started"
-              echo "Deployment Successful"
-            displayName: Deploy Application
+steps:
+- script: echo Hello
